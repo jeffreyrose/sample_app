@@ -13,7 +13,7 @@ require 'digest'
 
 class User < ActiveRecord::Base
    attr_accessor  :password
-   attr_accessible :name, :email,  :password, :password_confirmation
+   attr_accessible :name, :email,  :password, :confirmation_password
    
    email_regex = /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i
    
@@ -27,13 +27,13 @@ class User < ActiveRecord::Base
    validates  :password,  :presence  => true,
                           :confirmation  => true,
                           :length   => {  :within  => 6..40  }
-                          
+   #                       
     before_save  :encrypt_password
     
     # return true if password is correct
     def has_password?  (submitted_password)
       # Compare encypted_password with the encypted pwd
-      encrypted_password  == encrytp(submitted_password)
+      encrypted_password  == encrypt(submitted_password)
     end
     
     def self.authenticate(email, submitted_password)
@@ -50,11 +50,11 @@ class User < ActiveRecord::Base
       end
       
       def encrypt(string)
-        string  # Only temporary impl
+        secure_hash("#(salt)--#(string)")
       end
       
       def make_salt
-         secure_hash("#(salt)--#(string)")
+         secure_hash("#(Time.now.utc)--#(password)")
       end
       
       def secure_hash(string)
